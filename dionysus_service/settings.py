@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "addition",
 ]
 
 MIDDLEWARE = [
@@ -76,8 +77,12 @@ WSGI_APPLICATION = "dionysus_service.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "dionysus-service",
+        "USER": "dionysus",
+        "PASSWORD": "dionysus",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
@@ -122,3 +127,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Django REST Framework Settings
+# https://www.django-rest-framework.org/api-guide/settings/
+
+REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination", "PAGE_SIZE": 100}
+
+# Project Settings
+
+INCOMING_FOLDER = "~/Testing In"
+PLEX_FOLDER = "~/Testing Out"
