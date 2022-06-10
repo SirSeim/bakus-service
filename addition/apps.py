@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AdditionsConfig(AppConfig):
+class AdditionConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "additions"
+    name = "addition"
