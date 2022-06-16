@@ -23,6 +23,4 @@ urlpatterns = [
     path("api-docs/", include("rest_framework.urls")),
     # API v1
     path("api/v1/incoming", views.IncomingListView.as_view()),
-    path("api/v1/addition", views.AdditionListView.as_view()),
-    path("api/v1/addition/<int:pk>", views.AdditionDetailView.as_view()),
 ]

@@ -4,8 +4,6 @@ from django.conf import settings
 from rest_framework import generics, serializers
 from rest_framework.pagination import LimitOffsetPagination
 
-from addition import enums, models
-
 
 class IncomingListSerializer(serializers.Serializer):
     name = serializers.CharField()
@@ -22,21 +20,3 @@ class IncomingListView(generics.ListAPIView):
     def filter_queryset(self, queryset):
         # TODO: Do we really need anything functional here?
         return queryset
-
-
-class AdditionSerializer(serializers.ModelSerializer):
-    content_type = serializers.ChoiceField(choices=enums.AdditionType.choices)
-
-    class Meta:
-        model = models.Addition
-        fields = "__all__"
-
-
-class AdditionListView(generics.ListCreateAPIView):
-    queryset = models.Addition.objects.get_queryset()
-    serializer_class = AdditionSerializer
-
-
-class AdditionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.Addition.objects.get_queryset()
-    serializer_class = AdditionSerializer
