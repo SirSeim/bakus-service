@@ -1,21 +1,27 @@
-import os
-
-from django.conf import settings
 from rest_framework import generics, serializers
 from rest_framework.pagination import LimitOffsetPagination
 
-
-class IncomingListSerializer(serializers.Serializer):
-    name = serializers.CharField()
+from addition import clients, enums
 
 
-class IncomingListView(generics.ListAPIView):
+class AdditionSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    state = serializers.ChoiceField(choices=enums.State, read_only=True)
+    name = serializers.CharField(read_only=True)
+    progress = serializers.FloatField(read_only=True)
+
+
+# TODO: add filtering and sorting capabilities
+class AdditionListView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
-    serializer_class = IncomingListSerializer
+    serializer_class = AdditionSerializer
 
     def get_queryset(self):
-        _items = [t for t in os.walk(settings.INCOMING_FOLDER) if t[0] != settings.INCOMING_FOLDER]
-        return [{"name": os.path.basename(os.path.normpath(t[0]))} for t in _items]
+        torrents = clients.Transmission.get_torrents()
+        files = clients.FileSystem.get_files()
+        complete = torrents + files
+        complete.sort(key=lambda a: a.name)
+        return complete
 
     def filter_queryset(self, queryset):
         # TODO: Do we really need anything functional here?
