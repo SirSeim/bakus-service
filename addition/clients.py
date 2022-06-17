@@ -26,28 +26,33 @@ class Transmission:
         )
 
     @classmethod
-    def get_torrents(cls) -> typing.List[models.Addition]:
-        return [
-            models.Addition(
-                id=torrent.id,
-                state=enums.State.DOWNLOADING,
-                name=torrent.name,
-                progress=torrent.progress,
-            )
-            for torrent in cls.client.get_torrents()
-        ]
+    def get_torrents(cls) -> models.ObjectSet[models.Addition]:
+        return models.ObjectSet(
+            [
+                models.Addition(
+                    id=torrent.id,
+                    state=enums.State.DOWNLOADING,
+                    name=torrent.name,
+                    progress=torrent.progress,
+                )
+                for torrent in cls.client.get_torrents()
+            ]
+        )
 
 
 class FileSystem:
     @staticmethod
-    def get_files() -> typing.List[models.Addition]:
-        return [
-            # TODO: set a reliable ID
-            models.Addition(
-                id=os.path.basename(os.path.normpath(file[0])),
-                state=enums.State.COMPLETED,
-                name=os.path.basename(os.path.normpath(file[0])),
-                progress=1.0,
-            )
-            for file in [t for t in os.walk(settings.INCOMING_FOLDER) if t[0] != settings.INCOMING_FOLDER]
-        ]
+    def get_files() -> models.ObjectSet[models.Addition]:
+        return models.ObjectSet(
+            [
+                # TODO: set a reliable ID
+                models.Addition(
+                    id=os.path.basename(os.path.normpath(file[0])),
+                    state=enums.State.COMPLETED,
+                    name=os.path.basename(os.path.normpath(file[0])),
+                    progress=1.0,
+                )
+                for file in os.walk(settings.INCOMING_FOLDER)
+                if file[0] != settings.INCOMING_FOLDER
+            ]
+        )

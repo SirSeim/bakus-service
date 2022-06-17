@@ -1,7 +1,8 @@
 from rest_framework import generics, serializers
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
-from addition import clients, enums
+from addition import clients, enums, models
 
 
 class AdditionSerializer(serializers.Serializer):
@@ -11,18 +12,14 @@ class AdditionSerializer(serializers.Serializer):
     progress = serializers.FloatField(read_only=True)
 
 
-# TODO: add filtering and sorting capabilities
+# TODO: add filtering capabilities
 class AdditionListView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
     serializer_class = AdditionSerializer
 
-    def get_queryset(self):
-        torrents = clients.Transmission.get_torrents()
-        files = clients.FileSystem.get_files()
-        complete = torrents + files
-        complete.sort(key=lambda a: a.name)
-        return complete
+    filter_backends = [OrderingFilter]
+    ordering_fields = models.Addition.fields()
+    ordering = "name"
 
-    def filter_queryset(self, queryset):
-        # TODO: Do we really need anything functional here?
-        return queryset
+    def get_queryset(self) -> models.ObjectSet[models.Addition]:
+        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
