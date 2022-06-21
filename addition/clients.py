@@ -18,6 +18,8 @@ class Transmission:
     @classmethod
     def add_torrent(cls, magnet_link: str) -> models.Addition:
         torrent = cls.client.add_torrent(magnet_link)
+        # Errors occur accessing properties without refreshing object first
+        torrent = cls.client.get_torrent(torrent_id=torrent.id)
         return models.Addition(
             id=torrent.id,
             state=enums.State.DOWNLOADING,

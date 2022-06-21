@@ -6,14 +6,21 @@ from addition import clients, enums, models
 
 
 class AdditionSerializer(serializers.Serializer):
+    # read only fields
     id = serializers.CharField(read_only=True)
     state = serializers.ChoiceField(choices=enums.State, read_only=True)
     name = serializers.CharField(read_only=True)
     progress = serializers.FloatField(read_only=True)
 
+    # write only fields
+    magnet_link = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        return clients.Transmission.add_torrent(validated_data["magnet_link"])
+
 
 # TODO: add filtering capabilities
-class AdditionListView(generics.ListAPIView):
+class AdditionListView(generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     serializer_class = AdditionSerializer
 
