@@ -76,7 +76,10 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --cov-report=xml --cov=addition
+        pytest --cov=addition
+        coverage lcov
 
-    - name: Coveralls Python
-      uses: AndreMiras/coveralls-python-action@v20201129
+    - name: Coveralls reporting
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
