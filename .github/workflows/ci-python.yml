@@ -64,7 +64,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest -n auto --cov-report=xml --cov=addition
+        pytest --cov-report=xml --cov=addition
 
     - name: Coveralls
       uses: coverallsapp/github-action@master
