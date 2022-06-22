@@ -26,4 +26,4 @@ class MockTransmission:
 
 @pytest.fixture(autouse=True)
 def mock_transmission_client(monkeypatch):
-    monkeypatch.setattr(clients.Transmission, "client", MockTransmission)
+    monkeypatch.setattr(clients.Transmission, "_client", MockTransmission)
