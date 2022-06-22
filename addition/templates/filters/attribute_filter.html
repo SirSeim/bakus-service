@@ -1,0 +1,12 @@
+{% load rest_framework %}
+{% load i18n %}
+<h2>{% trans "Attribute Filter" %}</h2>
+<form>
+  {% for key, name, value in fields %}
+    <div class="form-group">
+      <label for="{{ key }}">{{ name }}</label>
+      <input type="text" class="form-control" style="width: 350px" name="{{ key }}" value="{{ value }}">
+    </div>
+  {% endfor %}
+  <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-filter" aria-hidden="true"></span> {% trans "Apply Filters" %}</button>
+</form>

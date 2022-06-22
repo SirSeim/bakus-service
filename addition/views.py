@@ -3,6 +3,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from addition import clients, enums, models
+from addition.filters import AttributeFilter
 
 
 class AdditionSerializer(serializers.Serializer):
@@ -19,14 +20,14 @@ class AdditionSerializer(serializers.Serializer):
         return clients.Transmission.add_torrent(validated_data["magnet_link"])
 
 
-# TODO: add filtering capabilities
 class AdditionListView(generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     serializer_class = AdditionSerializer
 
-    filter_backends = [OrderingFilter]
+    filter_backends = [OrderingFilter, AttributeFilter]
     ordering_fields = models.Addition.fields()
     ordering = "name"
+    object_fields = models.Addition.fields()
 
     def get_queryset(self) -> models.ObjectSet[models.Addition]:
         return clients.Transmission.get_torrents() + clients.FileSystem.get_files()

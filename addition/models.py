@@ -20,6 +20,13 @@ class Addition:
 
 
 class ObjectSet(UserList):
+    def filter(self, **kwargs: list) -> "ObjectSet":
+        res = self.data
+        for key, val in kwargs.items():
+            # TODO: once AttributeFilter returns correct value types, stop string converting
+            res = filter(lambda addition: str(getattr(addition, key)) in val, res)
+        return ObjectSet(res)
+
     def order_by(self, *ordering: str) -> "ObjectSet":
         res = self.data
         for o in reversed(ordering):
