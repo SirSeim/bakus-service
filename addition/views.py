@@ -1,22 +1,33 @@
-import os
-
-from django.conf import settings
 from rest_framework import generics, serializers
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
+from addition import clients, enums, models
+from addition.filters import AttributeFilter
 
-class IncomingListSerializer(serializers.Serializer):
-    name = serializers.CharField()
+
+class AdditionSerializer(serializers.Serializer):
+    # read only fields
+    id = serializers.CharField(read_only=True)
+    state = serializers.ChoiceField(choices=enums.State, read_only=True)
+    name = serializers.CharField(read_only=True)
+    progress = serializers.FloatField(read_only=True)
+
+    # write only fields
+    magnet_link = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        return clients.Transmission.add_torrent(validated_data["magnet_link"])
 
 
-class IncomingListView(generics.ListAPIView):
+class AdditionListView(generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
-    serializer_class = IncomingListSerializer
+    serializer_class = AdditionSerializer
 
-    def get_queryset(self):
-        _items = [t for t in os.walk(settings.INCOMING_FOLDER) if t[0] != settings.INCOMING_FOLDER]
-        return [{"name": os.path.basename(os.path.normpath(t[0]))} for t in _items]
+    filter_backends = [OrderingFilter, AttributeFilter]
+    ordering_fields = models.Addition.fields()
+    ordering = "name"
+    object_fields = models.Addition.fields()
 
-    def filter_queryset(self, queryset):
-        # TODO: Do we really need anything functional here?
-        return queryset
+    def get_queryset(self) -> models.ObjectSet[models.Addition]:
+        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
