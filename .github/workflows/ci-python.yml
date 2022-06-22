@@ -39,6 +39,18 @@ jobs:
       matrix:
         python-version: ["3.10"]
 
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: dionysus
+          POSTGRES_PASSWORD: dionysus
+          POSTGRES_DB: dionysus-service
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
 
