@@ -15,12 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from knox import views as knox_views
 
 from addition import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api-docs/", include("rest_framework.urls")),
     # API v1
-    path("api/v1/addition", views.AdditionListView.as_view(), name="addition-list"),
+    path("api/v1/addition/", views.AdditionListView.as_view(), name="addition-list"),
+    path("api/v1/auth/login/", views.LoginView.as_view(), name="knox_login"),
+    path("api/v1/auth/logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
+    path("api/v1/auth/logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"),
 ]
