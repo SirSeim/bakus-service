@@ -20,3 +20,10 @@ TORRENT_DICT = {
         progress=0.10,
     ),
 }
+
+USER_USERNAME = "test"
+USER_PASSWORD = "test1test"
+USER_LOGIN = {
+    "username": USER_USERNAME,
+    "password": USER_PASSWORD,
+}

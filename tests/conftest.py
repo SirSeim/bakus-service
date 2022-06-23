@@ -1,4 +1,7 @@
 import pytest
+from django.contrib.auth.models import User
+from rest_framework import status
+from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addition import clients
@@ -6,8 +9,13 @@ from tests import test_constants
 
 
 @pytest.fixture
-def api_client():
-    return APIClient()
+def api_client() -> APIClient:
+    User.objects.create_user(username=test_constants.USER_USERNAME, password=test_constants.USER_PASSWORD)
+    client = APIClient()
+    res = client.post(reverse("knox_login"), test_constants.USER_LOGIN)
+    assert res.status_code == status.HTTP_200_OK
+    client.credentials(HTTP_AUTHORIZATION=f"Token {res.data['token']}")
+    return client
 
 
 class MockTransmission:
