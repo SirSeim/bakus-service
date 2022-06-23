@@ -1,9 +1,25 @@
+from django.contrib.auth import login
+from knox.views import LoginView as KnoxLoginView
 from rest_framework import generics, serializers
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny
 
 from addition import clients, enums, models
 from addition.filters import AttributeFilter
+
+
+class LoginView(KnoxLoginView):
+    permission_classes = [AllowAny]
+    serializer_class = AuthTokenSerializer
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        login(request, user)
+        return super().post(request, format=None)
 
 
 class AdditionSerializer(serializers.Serializer):
