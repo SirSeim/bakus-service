@@ -2,9 +2,14 @@ import typing
 from collections import UserList
 
 from attrs import define, fields_dict
-from django.db import models
 
 from addition import enums
+
+
+@define
+class File:
+    name: str
+    file_type: enums.FileType
 
 
 @define
@@ -13,6 +18,7 @@ class Addition:
     state: enums.State
     name: str
     progress: float
+    files: list[File]
 
     @classmethod
     def fields(cls) -> typing.List[str]:

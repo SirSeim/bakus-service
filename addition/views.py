@@ -22,12 +22,19 @@ class LoginView(KnoxLoginView):
         return super().post(request, format=None)
 
 
+class FileSerializer(serializers.Serializer):
+    # read only fields
+    name = serializers.CharField(read_only=True)
+    file_type = serializers.ChoiceField(choices=enums.FileType, read_only=True)
+
+
 class AdditionSerializer(serializers.Serializer):
     # read only fields
     id = serializers.CharField(read_only=True)
     state = serializers.ChoiceField(choices=enums.State, read_only=True)
     name = serializers.CharField(read_only=True)
     progress = serializers.FloatField(read_only=True)
+    files = FileSerializer(many=True, read_only=True)
 
     # write only fields
     magnet_link = serializers.CharField(write_only=True)
