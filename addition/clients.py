@@ -1,13 +1,15 @@
 import os
+import pathlib
 
 from django.conf import settings
 from transmission_rpc import Client, Torrent
+from transmission_rpc.lib_types import File as TorrentFile
 
 from addition import enums, models
 
 
-def get_file_extension(file: str) -> enums.FileType:
-    ext = os.path.splitext(file)[1].strip(".").lower()
+def get_file_extension(file: pathlib.Path) -> enums.FileType:
+    ext = file.suffix.strip(".").lower()
     if ext in ("asf", "avi", "mov", "mp4", "mpeg", "mpegts", "ts", "mkv", "wmv"):
         return enums.FileType.VIDEO
     elif ext in ("srt", "smi", "ssa", "ass", "vtt"):
@@ -42,65 +44,73 @@ class Transmission:
     def get_torrents(cls) -> models.ObjectSet[models.Addition]:
         return models.ObjectSet([cls.format_addition(torrent) for torrent in cls.client().get_torrents()])
 
-    @staticmethod
-    def format_addition(torrent: Torrent) -> models.Addition:
+    @classmethod
+    def format_addition(cls, torrent: Torrent) -> models.Addition:
         return models.Addition(
             id=torrent.id,
             state=enums.State.DOWNLOADING,
             name=torrent.name,
             progress=torrent.progress,
-            files=[
-                # TODO: These still have the root folder
-                models.File(
-                    name=f.name,
-                    file_type=get_file_extension(f.name),
-                )
-                for f in torrent.files()
-            ],
+            files=[cls.format_file(f) for f in torrent.files()],
+        )
+
+    @staticmethod
+    def format_file(file: TorrentFile) -> models.File:
+        file_parts = pathlib.Path(file.name).parts
+        if len(file_parts) == 1:
+            name = file_parts[0]
+        else:
+            name = str(pathlib.Path(*file_parts[1:]))
+        return models.File(
+            name=name,
+            file_type=get_file_extension(pathlib.Path(file.name)),
         )
 
 
 class FileSystem:
+    EXCLUDE_FILES = (".DS_Store",)
+
     @classmethod
     def get_files(cls) -> models.ObjectSet[models.Addition]:
         res = []
-        for addition in os.listdir(settings.INCOMING_FOLDER):
-            if addition in (".DS_Store",):
+        for addition in pathlib.Path(settings.INCOMING_FOLDER).iterdir():
+            if addition.name in cls.EXCLUDE_FILES:
                 continue
-            addition_path = os.path.join(settings.INCOMING_FOLDER, addition)
             # Add single file cases
-            if os.path.isfile(addition_path):
+            if addition.is_file():
                 # TODO: set a reliable ID
                 res.append(
                     models.Addition(
-                        id=addition,
+                        id=addition.name,
                         state=enums.State.COMPLETED,
-                        name=addition,
+                        name=addition.name,
                         progress=1.0,
                         files=[cls.format_file(addition)],
                     )
                 )
                 continue
             # Add multi-file cases
-            for root, _, files in os.walk(addition_path):
-                addition_files = []
+            addition_files = []
+            for root, _, files in os.walk(str(addition)):
                 for f in files:
-                    file_name = os.path.relpath(os.path.join(root, f), start=addition_path)
+                    if f in cls.EXCLUDE_FILES:
+                        continue
+                    file_name = pathlib.Path(root, f).relative_to(addition)
                     addition_files.append(cls.format_file(file_name))
-                res.append(
-                    models.Addition(
-                        id=addition,
-                        state=enums.State.COMPLETED,
-                        name=addition,
-                        progress=1.0,
-                        files=addition_files,
-                    )
+            res.append(
+                models.Addition(
+                    id=addition.name,
+                    state=enums.State.COMPLETED,
+                    name=addition.name,
+                    progress=1.0,
+                    files=addition_files,
                 )
+            )
         return models.ObjectSet(res)
 
     @staticmethod
-    def format_file(file: str) -> models.File:
+    def format_file(file: pathlib.Path) -> models.File:
         return models.File(
-            name=file,
+            name=str(file),
             file_type=get_file_extension(file),
         )
