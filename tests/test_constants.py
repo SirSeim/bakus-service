@@ -107,8 +107,8 @@ DOWNLOADS = [
     Download(
         name="downloaded-content",
         files=[
-            DownloadFile(name="subtitles.srt", file_type=enums.FileType.SUBTITLE),
             DownloadFile(name="poster.jpg", file_type=enums.FileType.IMAGE),
+            DownloadFile(name="subtitles.srt", file_type=enums.FileType.SUBTITLE),
             DownloadFile(name="videos/completed.mov", file_type=enums.FileType.VIDEO),
         ],
     ),
