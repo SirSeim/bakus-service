@@ -1,4 +1,5 @@
 from attrs import define
+from transmission_rpc.lib_types import File as TorrentFile
 
 
 @define
@@ -6,6 +7,18 @@ class Torrent:
     id: str
     name: str
     progress: float
+
+    def files(self) -> list[TorrentFile]:
+        return [self.create_file(i) for i in range(2)]
+
+    def create_file(self, num: int) -> TorrentFile:
+        return TorrentFile(
+            name=f"{self.name}-{num}.mov",
+            size=500000,
+            completed=455761,
+            priority="normal",
+            selected=True,
+        )
 
 
 TORRENT_DICT = {
