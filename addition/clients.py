@@ -46,12 +46,14 @@ class Transmission:
 
     @classmethod
     def format_addition(cls, torrent: Torrent) -> models.Addition:
+        files = [cls.format_file(f) for f in torrent.files()]
+        files.sort(key=lambda f: f.name)
         return models.Addition(
             id=torrent.id,
             state=enums.State.DOWNLOADING,
             name=torrent.name,
             progress=torrent.progress,
-            files=[cls.format_file(f) for f in torrent.files()],
+            files=files,
         )
 
     @staticmethod
@@ -85,7 +87,7 @@ class FileSystem:
                         state=enums.State.COMPLETED,
                         name=addition.name,
                         progress=1.0,
-                        files=[cls.format_file(addition)],
+                        files=[cls.format_file(pathlib.Path(addition.name))],
                     )
                 )
                 continue
@@ -97,6 +99,7 @@ class FileSystem:
                         continue
                     file_name = pathlib.Path(root, f).relative_to(addition)
                     addition_files.append(cls.format_file(file_name))
+            addition_files.sort(key=lambda f: f.name)
             res.append(
                 models.Addition(
                     id=addition.name,

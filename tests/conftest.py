@@ -1,3 +1,5 @@
+import pathlib
+
 import pytest
 from django.contrib.auth.models import User
 from rest_framework import status
@@ -35,3 +37,27 @@ class MockTransmission:
 @pytest.fixture(autouse=True)
 def mock_transmission_client(monkeypatch):
     monkeypatch.setattr(clients.Transmission, "_client", MockTransmission)
+
+
+@pytest.fixture(autouse=True)
+def mock_project_folders(tmp_path, settings) -> dict[str, pathlib.Path]:
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    settings.INCOMING_FOLDER = incoming.resolve()
+    plex = tmp_path / "plex"
+    plex.mkdir()
+    settings.PLEX_FOLDER = plex.resolve()
+    return {
+        "incoming": incoming,
+        "plex": plex,
+    }
+
+
+@pytest.fixture
+def incoming_folder(mock_project_folders) -> pathlib.Path:
+    return mock_project_folders["incoming"]
+
+
+@pytest.fixture
+def plex_folder(mock_project_folders) -> pathlib.Path:
+    return mock_project_folders["plex"]
