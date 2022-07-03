@@ -1,4 +1,6 @@
-from attrs import define
+import pathlib
+
+from attrs import define, field
 from transmission_rpc.lib_types import File as TorrentFile
 
 from addition import enums
@@ -22,6 +24,21 @@ class Torrent:
             selected=True,
         )
 
+    def get_json(self) -> dict:
+        return {
+            "id": self.id,
+            "state": enums.State.DOWNLOADING,
+            "name": self.name,
+            "progress": self.progress,
+            "files": [
+                {
+                    "name": file.name,
+                    "file_type": enums.FileType.VIDEO,
+                }
+                for file in self.files()
+            ],
+        }
+
 
 TORRENT_DICT = {
     "1": Torrent(
@@ -36,24 +53,66 @@ TORRENT_DICT = {
     ),
 }
 
-DOWNLOADED_DICT = {
-    "downloaded-content": {
-        "id": "downloaded-content",
-        "state": enums.State.COMPLETED,
-        "name": "downloaded-content",
-        "progress": 1.0,
-        "files": [
-            {
-                "name": "subtitles.srt",
-                "file_type": enums.FileType.SUBTITLE,
-            },
-            {
-                "name": "videos/completed.mov",
-                "file_type": enums.FileType.VIDEO,
-            },
+
+@define
+class DownloadFile:
+    name: str
+    file_type: enums.FileType
+
+    def get_json(self) -> dict:
+        return {
+            "name": self.name,
+            "file_type": self.file_type,
+        }
+
+
+@define
+class Download:
+    name: str
+    single_file: bool = field(default=False)
+    files: list[DownloadFile] = field(default=[])
+
+    def get_json(self) -> dict:
+        if self.single_file:
+            files = [
+                DownloadFile(name=self.name, file_type=enums.FileType.VIDEO).get_json(),
+            ]
+        else:
+            files = [file.get_json() for file in self.files]
+        return {
+            "id": self.name,
+            "state": enums.State.COMPLETED,
+            "name": self.name,
+            "progress": 1.0,
+            "files": files,
+        }
+
+    def create_files(self, path: pathlib.Path):
+        if self.single_file:
+            file = path / self.name
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text("testing")
+        else:
+            for file_data in self.files:
+                file = path / self.name / file_data.name
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_text("testing")
+
+
+DOWNLOADS = [
+    Download(
+        name="cat-dog.mkv",
+        single_file=True,
+    ),
+    Download(
+        name="downloaded-content",
+        files=[
+            DownloadFile(name="subtitles.srt", file_type=enums.FileType.SUBTITLE),
+            DownloadFile(name="poster.jpg", file_type=enums.FileType.IMAGE),
+            DownloadFile(name="videos/completed.mov", file_type=enums.FileType.VIDEO),
         ],
-    }
-}
+    ),
+]
 
 USER_USERNAME = "test"
 USER_PASSWORD = "test1test"

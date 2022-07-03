@@ -85,7 +85,7 @@ class FileSystem:
                         state=enums.State.COMPLETED,
                         name=addition.name,
                         progress=1.0,
-                        files=[cls.format_file(addition)],
+                        files=[cls.format_file(pathlib.Path(addition.name))],
                     )
                 )
                 continue
