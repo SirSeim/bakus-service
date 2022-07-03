@@ -6,12 +6,8 @@ from addition import enums
 from tests import test_constants
 
 
-@pytest.mark.django_db
-def test_get_list(api_client):
-    response = api_client.get(reverse("addition-list"))
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data.get("count") == len(test_constants.TORRENT_DICT)
-    assert response.data.get("results") == [
+def expected_results(sort: str = "name") -> list[dict]:
+    torrents = [
         {
             "id": torrent.id,
             "state": enums.State.DOWNLOADING,
@@ -27,3 +23,19 @@ def test_get_list(api_client):
         }
         for torrent in test_constants.TORRENT_DICT.values()
     ]
+    downloaded = [completed for completed in test_constants.DOWNLOADED_DICT.values()]
+    return sorted((downloaded + torrents), key=lambda a: a[sort])
+
+
+@pytest.mark.django_db
+def test_get_list(api_client, incoming_folder):
+    for name, download in test_constants.DOWNLOADED_DICT.items():
+        for file_json in download["files"]:
+            file = incoming_folder / name / file_json["name"]
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text("testing")
+    response = api_client.get(reverse("addition-list"))
+    assert response.status_code == status.HTTP_200_OK
+    expected = expected_results()
+    assert response.data.get("count") == len(expected)
+    assert response.data.get("results") == expected

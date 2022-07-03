@@ -1,6 +1,8 @@
 from attrs import define
 from transmission_rpc.lib_types import File as TorrentFile
 
+from addition import enums
+
 
 @define
 class Torrent:
@@ -32,6 +34,25 @@ TORRENT_DICT = {
         name="test_torrent_2",
         progress=0.10,
     ),
+}
+
+DOWNLOADED_DICT = {
+    "downloaded-content": {
+        "id": "downloaded-content",
+        "state": enums.State.COMPLETED,
+        "name": "downloaded-content",
+        "progress": 1.0,
+        "files": [
+            {
+                "name": "subtitles.srt",
+                "file_type": enums.FileType.SUBTITLE,
+            },
+            {
+                "name": "videos/completed.mov",
+                "file_type": enums.FileType.VIDEO,
+            },
+        ],
+    }
 }
 
 USER_USERNAME = "test"
