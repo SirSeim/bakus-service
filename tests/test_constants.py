@@ -120,3 +120,15 @@ USER_LOGIN = {
     "username": USER_USERNAME,
     "password": USER_PASSWORD,
 }
+
+ALT_USERNAME = "adamexample"
+ALT_EMAIL = "adam@example.io"
+ALT_FIRST_NAME = "Adam"
+ALT_LAST_NAME = "Example"
+
+ALT_USER_DETAILS = {
+    "username": ALT_USERNAME,
+    "email": ALT_EMAIL,
+    "first_name": ALT_FIRST_NAME,
+    "last_name": ALT_LAST_NAME,
+}
