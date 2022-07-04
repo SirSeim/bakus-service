@@ -23,7 +23,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # API v1
     path("api/v1/addition/", views.AdditionListView.as_view(), name="addition-list"),
-    path("api/v1/auth/account", views.AccountView.as_view(), name="account-detail"),
+    path("api/v1/auth/account/", views.AccountView.as_view(), name="account-detail"),
     path("api/v1/auth/login/", views.LoginView.as_view(), name="knox_login"),
     path("api/v1/auth/logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     path("api/v1/auth/logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"),
