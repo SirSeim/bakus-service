@@ -69,9 +69,4 @@ TBD
 
 ## Dev Work Tips
 
-1. Setup **Save Actions** in Pycharm to automatically format code as you work
-   1. TBD
-   2. Alternate manual commands TBD
-2. Setup **Configurations** in Pycharm to run `pytest` and the Django server
-   1. TBD
-   2. ALterate manual comamnds TBD
+If using PyCharm, take a look at [PyCharm Tips](/docs/pycharm-tips.md)
