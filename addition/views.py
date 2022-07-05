@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.contrib.auth.models import User
 from knox.views import LoginView as KnoxLoginView
 from rest_framework import generics, serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -8,6 +9,19 @@ from rest_framework.permissions import AllowAny
 
 from addition import clients, enums, models
 from addition.filters import AttributeFilter
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "email", "first_name", "last_name"]
+
+
+class AccountView(generics.RetrieveUpdateAPIView):
+    serializer_class = AccountSerializer
+
+    def get_object(self):
+        return self.request.user
 
 
 class LoginView(KnoxLoginView):
