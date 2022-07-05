@@ -1,5 +1,5 @@
 attrs==21.4.0
-Django==4.0.5
+Django==4.0.6
 django-filter==22.1
 django-rest-knox==4.2.0
 djangorestframework==3.13.1
