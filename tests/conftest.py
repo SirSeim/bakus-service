@@ -7,7 +7,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addition import clients
-from tests import test_constants
+from tests import test_constants, test_models
 
 
 @pytest.fixture
@@ -21,22 +21,25 @@ def api_client() -> APIClient:
 
 
 class MockTransmission:
-    @staticmethod
-    def add_torrent(_: str) -> test_constants.Torrent:
-        return test_constants.TORRENT_DICT["1"]
+    TORRENT_DICT = test_constants.TORRENT_DICT
 
-    @staticmethod
-    def get_torrent(torrent_id: str) -> test_constants.Torrent:
-        return test_constants.TORRENT_DICT[torrent_id]
+    @classmethod
+    def add_torrent(cls, _: str) -> test_models.Torrent:
+        return cls.TORRENT_DICT["1"]
 
-    @staticmethod
-    def get_torrents() -> list[test_constants.Torrent]:
-        return [torrent for torrent in test_constants.TORRENT_DICT.values()]
+    @classmethod
+    def get_torrent(cls, torrent_id: str) -> test_models.Torrent:
+        return cls.TORRENT_DICT[torrent_id]
+
+    @classmethod
+    def get_torrents(cls) -> list[test_models.Torrent]:
+        return [torrent for torrent in cls.TORRENT_DICT.values()]
 
 
 @pytest.fixture(autouse=True)
 def mock_transmission_client(monkeypatch):
     monkeypatch.setattr(clients.Transmission, "_client", MockTransmission)
+    return MockTransmission
 
 
 @pytest.fixture(autouse=True)
