@@ -24,6 +24,13 @@ class Addition:
     def fields(cls) -> typing.List[str]:
         return list(fields_dict(cls))
 
+    def is_valid(self) -> bool:
+        # any partial files means not valid
+        if any(file.file_type == enums.FileType.PARTIAL for file in self.files):
+            return False
+        # must have video to be valid
+        return any(file.file_type == enums.FileType.VIDEO for file in self.files)
+
 
 class ObjectSet(UserList):
     def filter(self, **kwargs: list) -> "ObjectSet":

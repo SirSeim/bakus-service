@@ -8,17 +8,6 @@ from transmission_rpc.lib_types import File as TorrentFile
 from addition import enums, models
 
 
-def get_file_extension(file: pathlib.Path) -> enums.FileType:
-    ext = file.suffix.strip(".").lower()
-    if ext in ("asf", "avi", "mov", "mp4", "mpeg", "mpegts", "ts", "mkv", "wmv"):
-        return enums.FileType.VIDEO
-    elif ext in ("srt", "smi", "ssa", "ass", "vtt"):
-        return enums.FileType.SUBTITLE
-    elif ext in ("jpg", "jpeg", "png"):
-        return enums.FileType.IMAGE
-    return enums.FileType.OTHER
-
-
 class Transmission:
     _client = None
 
@@ -65,55 +54,53 @@ class Transmission:
             name = str(pathlib.Path(*file_parts[1:]))
         return models.File(
             name=name,
-            file_type=get_file_extension(pathlib.Path(file.name)),
+            file_type=enums.FileType.get_extension(pathlib.Path(file.name)),
         )
 
 
 class FileSystem:
-    EXCLUDE_FILES = (".DS_Store",)
-
     @classmethod
     def get_files(cls) -> models.ObjectSet[models.Addition]:
         res = []
         for addition in pathlib.Path(settings.INCOMING_FOLDER).iterdir():
-            if addition.name in cls.EXCLUDE_FILES:
+            if addition.name in settings.EXCLUDE_NAMES:
                 continue
             # Add single file cases
             if addition.is_file():
                 # TODO: set a reliable ID
-                res.append(
-                    models.Addition(
-                        id=addition.name,
-                        state=enums.State.COMPLETED,
-                        name=addition.name,
-                        progress=1.0,
-                        files=[cls.format_file(pathlib.Path(addition.name))],
-                    )
+                a = models.Addition(
+                    id=addition.name,
+                    state=enums.State.COMPLETED,
+                    name=addition.name,
+                    progress=1.0,
+                    files=[cls.format_file(pathlib.Path(addition.name))],
                 )
+                if a.is_valid():
+                    res.append(a)
                 continue
             # Add multi-file cases
             addition_files = []
             for root, _, files in os.walk(str(addition)):
                 for f in files:
-                    if f in cls.EXCLUDE_FILES:
+                    if f in settings.EXCLUDE_NAMES:
                         continue
                     file_name = pathlib.Path(root, f).relative_to(addition)
                     addition_files.append(cls.format_file(file_name))
             addition_files.sort(key=lambda f: f.name)
-            res.append(
-                models.Addition(
-                    id=addition.name,
-                    state=enums.State.COMPLETED,
-                    name=addition.name,
-                    progress=1.0,
-                    files=addition_files,
-                )
+            a = models.Addition(
+                id=addition.name,
+                state=enums.State.COMPLETED,
+                name=addition.name,
+                progress=1.0,
+                files=addition_files,
             )
+            if a.is_valid():
+                res.append(a)
         return models.ObjectSet(res)
 
     @staticmethod
     def format_file(file: pathlib.Path) -> models.File:
         return models.File(
             name=str(file),
-            file_type=get_file_extension(file),
+            file_type=enums.FileType.get_extension(file),
         )
