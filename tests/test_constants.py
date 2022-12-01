@@ -37,6 +37,13 @@ USER_LOGIN = {
     "password": USER_PASSWORD,
 }
 
+DEMO_USERNAME = "demo"
+DEMO_PASSWORD = "demo1demo"
+DEMO_LOGIN = {
+    "username": DEMO_USERNAME,
+    "password": DEMO_PASSWORD,
+}
+
 ALT_USERNAME = "adamexample"
 ALT_EMAIL = "adam@example.io"
 ALT_FIRST_NAME = "Adam"

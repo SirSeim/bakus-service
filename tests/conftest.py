@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from addition import clients
+from addition import clients, models
 from tests import test_constants, test_models
 
 
@@ -15,6 +15,17 @@ def api_client() -> APIClient:
     User.objects.create_user(username=test_constants.USER_USERNAME, password=test_constants.USER_PASSWORD)
     client = APIClient()
     res = client.post(reverse("knox_login"), test_constants.USER_LOGIN)
+    assert res.status_code == status.HTTP_200_OK
+    client.credentials(HTTP_AUTHORIZATION=f"Token {res.data['token']}")
+    return client
+
+
+@pytest.fixture
+def demo_api_client() -> APIClient:
+    user = User.objects.create_user(username=test_constants.DEMO_USERNAME, password=test_constants.DEMO_PASSWORD)
+    models.UserSettings.objects.create(user=user, demo=True)
+    client = APIClient()
+    res = client.post(reverse("knox_login"), test_constants.DEMO_LOGIN)
     assert res.status_code == status.HTTP_200_OK
     client.credentials(HTTP_AUTHORIZATION=f"Token {res.data['token']}")
     return client
