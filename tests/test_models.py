@@ -24,7 +24,10 @@ class Torrent:
             selected=True,
         )
 
-    def get_json(self) -> dict:
+    def get_json(self, include_files=True) -> dict:
+        files = []
+        if include_files:
+            files = self.files()
         return {
             "id": self.id,
             "state": enums.State.DOWNLOADING,
@@ -35,7 +38,7 @@ class Torrent:
                     "name": file.name,
                     "file_type": enums.FileType.VIDEO,
                 }
-                for file in self.files()
+                for file in files
             ],
         }
 

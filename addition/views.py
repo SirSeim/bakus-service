@@ -66,5 +66,30 @@ class AdditionListView(generics.ListCreateAPIView):
     ordering = "name"
     object_fields = models.Addition.fields()
 
+    DEMO_CREATE_INSTANCE = models.Addition(
+        id="demo_addition",
+        state=enums.State.DOWNLOADING,
+        name="demo_addition",
+        progress=0.0,
+        files=[],
+    )
+
+    DEMO_LIST_INSTANCES = [
+        models.Addition(
+            id="demo_addition_1", state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[]
+        ),
+        models.Addition(
+            id="demo_addition_2", state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[]
+        ),
+    ]
+
     def get_queryset(self) -> models.ObjectSet[models.Addition]:
+        if models.get_user_settings(self.request.user).demo:
+            return models.ObjectSet(self.DEMO_LIST_INSTANCES)
         return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
+
+    def perform_create(self, serializer):
+        if models.get_user_settings(self.request.user).demo:
+            serializer.instance = self.DEMO_CREATE_INSTANCE
+            return
+        super().perform_create(serializer)
