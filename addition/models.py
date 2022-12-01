@@ -2,6 +2,8 @@ import typing
 from collections import UserList
 
 from attrs import define, fields_dict
+from django.contrib.auth.models import User
+from django.db import models
 
 from addition import enums
 
@@ -48,3 +50,16 @@ class ObjectSet(UserList):
                 o = o[1:]
             res = sorted(res, key=lambda x: getattr(x, o), reverse=reverse)
         return ObjectSet(res)
+
+
+class UserSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
+    demo = models.BooleanField(default=False, null=False)
+
+
+def get_user_settings(user: User) -> UserSettings:
+    try:
+        return user.settings
+    except User.settings.RelatedObjectDoesNotExist:
+        pass
+    return UserSettings()
