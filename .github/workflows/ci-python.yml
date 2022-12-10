@@ -1,11 +1,5 @@
 name: CI
 
-# TODO: do we need this
-#env:
-#  DB_NAME: dashboard_api
-#  DB_USER: root
-#  DB_PASSWORD: root
-
 on:
   push:
     branches: [main]
@@ -36,16 +30,14 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
       fail-fast: false
-      matrix:
-        python-version: ["3.10"]
 
     services:
       postgres:
         image: postgres:10.8
         env:
-          POSTGRES_USER: dionysus
-          POSTGRES_PASSWORD: dionysus
-          POSTGRES_DB: dionysus-service
+          POSTGRES_USER: bakus
+          POSTGRES_PASSWORD: bakus
+          POSTGRES_DB: bakus-service
         ports:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
@@ -54,16 +46,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-# TODO: If we need this, setup postgres equivalent
-#    - name: Set up MySQL
-#      run: |
-#        sudo systemctl start mysql
-#        test -e /var/lib/mysql/${{ env.DB_NAME }} || mysqladmin --user='${{ env.DB_USER }}' --password='${{ env.DB_PASSWORD }}' create '${{ env.DB_NAME }}'
-
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.10
         cache: pip
 
     - name: Ensure latest pip
