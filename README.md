@@ -1,7 +1,7 @@
-# Dionysus Service
-[![Coverage Status](https://coveralls.io/repos/github/SirSeim/dionysus-service/badge.svg?branch=main)](https://coveralls.io/github/SirSeim/dionysus-service?branch=main)
+# Bakus Service
+[![Coverage Status](https://coveralls.io/repos/github/SirSeim/bakus-service/badge.svg?branch=main)](https://coveralls.io/github/SirSeim/bakus-service?branch=main)
 
-⚓️ Service that powers Dionysus
+⚓️ Service that powers Bakus
 
 ## Development
 Setup your environment for development
@@ -32,10 +32,10 @@ brew services start postgres
 ```
 
 ### Step 2: Setup project specifics
-Using [pgAdmin](https://www.pgadmin.org/download/) (or some other postgres client tool), add a user and database for dionysus-service to use:
-* Database name: `dionysus-service`
-* User: `dionysus`
-* Password: `dionysus`
+Using [pgAdmin](https://www.pgadmin.org/download/) (or some other postgres client tool), add a user and database for bakus-service to use:
+* Database name: `bakus-service`
+* User: `bakus`
+* Password: `bakus`
 
 This project uses Python 3.10, which we should install using pyenv
 ```bash
@@ -44,17 +44,17 @@ This project uses Python 3.10, which we should install using pyenv
 pyenv install 3.10.4
 ```
 
-Setup virtualenv using pyenv. We use the name `dionysus-service` to have consistent naming.
+Setup virtualenv using pyenv. We use the name `bakus-service` to have consistent naming.
 ```bash
-pyenv virtualenv 3.10.4 dionysus-service
+pyenv virtualenv 3.10.4 bakus-service
 ```
 Set that new pyenv version (pyenv treats virtualenvs as just addition versions) as the one to use for our project. This assumes your shell is set to the top level of the repo.
 ```bash
-pyenv local dionysus-service
+pyenv local bakus-service
 ```
 
 ### Step 3: Setup project for dev work
-Install project dependencies. This install main dependencies in addition to the ones for dev work.
+Install project dependencies. This installs the main dependencies in addition to the ones for dev work.
 ```bash
 pip install -r requirements-dev.txt
 ```

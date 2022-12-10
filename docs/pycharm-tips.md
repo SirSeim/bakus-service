@@ -36,9 +36,9 @@ In PyCharm, configurations are how you can run and debug code within the IDE. As
 ### Setup Django configuration
 If you properly setup your `pyenv` virtualenv and installed the dependencies before ever opening the project in PyCharm, this configuration may already have been created.
 
-1. In `/dionysus_service` create a `local_settings.py` file to live alongside `settings.py`. Have it import all of `settings.py` with
+1. In `/bakus_service` create a `local_settings.py` file to live alongside `settings.py`. Have it import all of `settings.py` with
    1. ```python
-      from dionysus_service.settings import *
+      from bakus_service.settings import *
       ```
    2. Include any settings you need to change for your local environment.
    3. **Note**: This file is already in the project `.gitignore` so it will not be committed.
@@ -46,7 +46,7 @@ If you properly setup your `pyenv` virtualenv and installed the dependencies bef
 3. Ensure it is using the virtualenv from `pyenv` as the Python Interpreter.
 4. Set an environment variable to point Django to use your `local_settings.py` like
    1. ```bash
-      DJANGO_SETTINGS_MODULE=dionysus_service.local_settings
+      DJANGO_SETTINGS_MODULE=bakus_service.local_settings
       ```
 5. Save the configuration.
 
