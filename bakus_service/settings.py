@@ -150,3 +150,9 @@ TRANSMISSION_HOST = "localhost"
 TRANSMISSION_PORT = 9091
 TRANSMISSION_USERNAME = "test"
 TRANSMISSION_PASSWORD = "test"
+
+# Apple Associated Domain support
+# more info at:
+# https://developer.apple.com/documentation/xcode/supporting-associated-domains#Add-the-Associated-Domains-Entitlement-to-Your-App
+
+APPLE_APP_SITE_ASSOCIATION = {"test-field": "testing"}

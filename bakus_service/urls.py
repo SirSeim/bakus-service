@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 from knox import views as knox_views
 
-from addition import views
+from addition import external_views, views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,4 +27,10 @@ urlpatterns = [
     path("api/v1/auth/login/", views.LoginView.as_view(), name="knox_login"),
     path("api/v1/auth/logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     path("api/v1/auth/logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"),
+    # External requirements
+    path(
+        ".well-known/apple-app-site-association",
+        external_views.AppleAppSiteAssociationView.as_view(),
+        name="apple-app-site-association",
+    ),
 ]
