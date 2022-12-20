@@ -5,12 +5,12 @@ TORRENT_DICT = {
     "1": Torrent(
         id="1",
         name="test_torrent_1",
-        progress=0.05,
+        progress=5.0,
     ),
     "2": Torrent(
         id="2",
         name="test_torrent_2",
-        progress=0.10,
+        progress=10.0,
     ),
 }
 
