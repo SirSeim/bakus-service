@@ -8,6 +8,11 @@ from addition import enums
 
 @define
 class Torrent:
+    """
+    Torrent represents the data that would come out of the Transmission-RPC client.
+    It has helper functions that generate the expected output in the endpoint
+    """
+
     id: str
     name: str
     progress: float
@@ -32,7 +37,7 @@ class Torrent:
             "id": self.id,
             "state": enums.State.DOWNLOADING,
             "name": self.name,
-            "progress": self.progress,
+            "progress": self.progress / 100,
             "files": [
                 {
                     "name": file.name,

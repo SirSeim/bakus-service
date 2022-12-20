@@ -38,10 +38,10 @@ class Transmission:
         files = [cls.format_file(f) for f in torrent.files()]
         files.sort(key=lambda f: f.name)
         return models.Addition(
-            id=torrent.id,
+            id=str(torrent.id),
             state=enums.State.DOWNLOADING,
             name=torrent.name,
-            progress=torrent.progress,
+            progress=torrent.progress / 100,
             files=files,
         )
 
