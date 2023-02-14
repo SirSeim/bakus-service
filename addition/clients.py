@@ -6,6 +6,7 @@ from transmission_rpc import Client, Torrent
 from transmission_rpc.lib_types import File as TorrentFile
 
 from addition import enums, models
+from common import hash_id
 
 
 class Transmission:
@@ -30,15 +31,15 @@ class Transmission:
         return cls.format_addition(torrent)
 
     @classmethod
-    def get_torrents(cls) -> models.ObjectSet[models.Addition]:
-        return models.ObjectSet([cls.format_addition(torrent) for torrent in cls.client().get_torrents()])
+    def get_torrents(cls) -> models.AdditionSet[models.Addition]:
+        return models.AdditionSet([cls.format_addition(torrent) for torrent in cls.client().get_torrents()])
 
     @classmethod
     def format_addition(cls, torrent: Torrent) -> models.Addition:
         files = [cls.format_file(f) for f in torrent.files()]
         files.sort(key=lambda f: f.name)
         return models.Addition(
-            id=str(torrent.id),
+            id=hash_id(str(torrent.id)),
             state=enums.State.DOWNLOADING,
             name=torrent.name,
             progress=torrent.progress / 100,
@@ -60,16 +61,14 @@ class Transmission:
 
 class FileSystem:
     @classmethod
-    def get_files(cls) -> models.ObjectSet[models.Addition]:
+    def get_files(cls) -> models.AdditionSet[models.Addition]:
         res = []
         for addition in pathlib.Path(settings.INCOMING_FOLDER).iterdir():
             if addition.name in settings.EXCLUDE_NAMES:
                 continue
             # Add single file cases
             if addition.is_file():
-                # TODO: set a reliable ID
                 a = models.Addition(
-                    id=addition.name,
                     state=enums.State.COMPLETED,
                     name=addition.name,
                     progress=1.0,
@@ -88,7 +87,6 @@ class FileSystem:
                     addition_files.append(cls.format_file(file_name))
             addition_files.sort(key=lambda f: f.name)
             a = models.Addition(
-                id=addition.name,
                 state=enums.State.COMPLETED,
                 name=addition.name,
                 progress=1.0,
@@ -96,7 +94,7 @@ class FileSystem:
             )
             if a.is_valid():
                 res.append(a)
-        return models.ObjectSet(res)
+        return models.AdditionSet(res)
 
     @staticmethod
     def format_file(file: pathlib.Path) -> models.File:

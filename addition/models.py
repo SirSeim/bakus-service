@@ -1,11 +1,13 @@
 import typing
+import uuid
 from collections import UserList
 
-from attrs import define, fields_dict
+from attrs import define, field, fields_dict
 from django.contrib.auth.models import User
 from django.db import models
 
-from addition import enums
+from addition import enums, errors
+from common import hash_id
 
 
 @define
@@ -16,15 +18,29 @@ class File:
 
 @define
 class Addition:
-    id: str
-    state: enums.State
+    files: list[File]
     name: str
     progress: float
-    files: list[File]
+    state: enums.State
+
+    id: uuid.UUID = field()
+
+    DoesNotExist = errors.DoesNotExist
+
+    # TODO: This should be done properly.
+    class Meta:
+        def __init__(self, object_name):
+            self.object_name = object_name
+
+    _meta = Meta("Addition")
 
     @classmethod
     def fields(cls) -> typing.List[str]:
         return list(fields_dict(cls))
+
+    @id.default
+    def _id_default(self) -> uuid.UUID:
+        return hash_id(self.name)
 
     def is_valid(self) -> bool:
         # any partial files means not valid
@@ -34,22 +50,35 @@ class Addition:
         return any(file.file_type == enums.FileType.VIDEO for file in self.files)
 
 
-class ObjectSet(UserList):
-    def filter(self, **kwargs: list) -> "ObjectSet":
+class AdditionSet(UserList):
+    model = Addition
+
+    def get(self, **kwargs: dict) -> Addition:
+        for d in self.data:
+            found = True
+            for key, val in kwargs.items():
+                if getattr(d, key) != val:
+                    found = False
+            # TODO: Raise error when multiple match
+            if found:
+                return d
+        raise self.model.DoesNotExist()
+
+    def filter(self, **kwargs: list) -> "AdditionSet[Addition]":
         res = self.data
         for key, val in kwargs.items():
             # TODO: once AttributeFilter returns correct value types, stop string converting
             res = filter(lambda addition: str(getattr(addition, key)) in val, res)
-        return ObjectSet(res)
+        return AdditionSet(res)
 
-    def order_by(self, *ordering: str) -> "ObjectSet":
+    def order_by(self, *ordering: str) -> "AdditionSet[Addition]":
         res = self.data
         for o in reversed(ordering):
             reverse = o.startswith("-")
             if reverse:
                 o = o[1:]
             res = sorted(res, key=lambda x: getattr(x, o), reverse=reverse)
-        return ObjectSet(res)
+        return AdditionSet(res)
 
 
 class UserSettings(models.Model):

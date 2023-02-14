@@ -15,11 +15,14 @@ TORRENT_DICT = {
 }
 
 
+SINGLE_DOWNLOAD = Download(
+    name="cat-dog.mkv",
+    single_file=True,
+)
+
+
 DOWNLOADS = [
-    Download(
-        name="cat-dog.mkv",
-        single_file=True,
-    ),
+    SINGLE_DOWNLOAD,
     Download(
         name="downloaded-content",
         files=[

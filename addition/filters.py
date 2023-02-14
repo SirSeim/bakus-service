@@ -34,13 +34,13 @@ class AttributeFilter(BaseFilterBackend):
         return params.split()
 
     # TODO: make this less hackish by having the filter value types align with the object field
-    def filter_queryset(self, request, queryset: models.ObjectSet, view) -> models.ObjectSet:
+    def filter_queryset(self, request, queryset: models.AdditionSet, view) -> models.AdditionSet:
         filters = self.get_filters(view, request)
         if not filters:
             return queryset
         return queryset.filter(**filters)
 
-    def get_template_context(self, request, queryset: models.ObjectSet, view) -> dict:
+    def get_template_context(self, request, queryset: models.AdditionSet, view) -> dict:
         raw_fields = self.get_fields(view)
         filters = self.get_filters(view, request)
         fields = []

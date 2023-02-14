@@ -1,3 +1,5 @@
+import copy
+
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from knox.views import LoginView as KnoxLoginView
@@ -67,7 +69,6 @@ class AdditionListView(generics.ListCreateAPIView):
     object_fields = models.Addition.fields()
 
     DEMO_CREATE_INSTANCE = models.Addition(
-        id="demo_addition",
         state=enums.State.DOWNLOADING,
         name="demo_addition",
         progress=0.0,
@@ -75,17 +76,13 @@ class AdditionListView(generics.ListCreateAPIView):
     )
 
     DEMO_LIST_INSTANCES = [
-        models.Addition(
-            id="demo_addition_1", state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[]
-        ),
-        models.Addition(
-            id="demo_addition_2", state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[]
-        ),
+        models.Addition(state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[]),
+        models.Addition(state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[]),
     ]
 
-    def get_queryset(self) -> models.ObjectSet[models.Addition]:
+    def get_queryset(self) -> models.AdditionSet[models.Addition]:
         if models.get_user_settings(self.request.user).demo:
-            return models.ObjectSet(self.DEMO_LIST_INSTANCES)
+            return models.AdditionSet(self.DEMO_LIST_INSTANCES)
         return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
 
     def perform_create(self, serializer):
@@ -93,3 +90,29 @@ class AdditionListView(generics.ListCreateAPIView):
             serializer.instance = self.DEMO_CREATE_INSTANCE
             return
         super().perform_create(serializer)
+
+
+class AdditionDetailView(generics.RetrieveDestroyAPIView):
+    lookup_field = "id"
+    serializer_class = AdditionSerializer
+
+    DEMO_INSTANCE = models.Addition(state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[])
+
+    def get_queryset(self) -> models.AdditionSet[models.Addition]:
+        if models.get_user_settings(self.request.user).demo:
+            return models.AdditionSet([self.DEMO_INSTANCE])
+        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
+
+    def get_object(self):
+        if models.get_user_settings(self.request.user).demo:
+            # always return same instance for demo user
+            instance = copy.deepcopy(self.DEMO_INSTANCE)
+            instance.id = self.kwargs[self.lookup_field]
+            return instance
+        return super().get_object()
+
+    def perform_destroy(self, instance):
+        if models.get_user_settings(self.request.user).demo:
+            # do nothing for demo user
+            return
+        super().perform_destroy(instance)

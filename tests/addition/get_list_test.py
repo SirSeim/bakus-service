@@ -63,3 +63,6 @@ def test_exclude_partials(api_client, incoming_folder, mock_transmission_client,
     assert response.status_code == status.HTTP_200_OK
     assert response.data.get("count") == 0
     assert response.data.get("results") == []
+
+
+# TODO: Add test combining list and detail calls
