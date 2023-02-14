@@ -49,6 +49,8 @@ class MockTransmission:
 
 @pytest.fixture(autouse=True)
 def mock_transmission_client(monkeypatch):
+    # Reset client contents for every test
+    MockTransmission.TORRENT_DICT = test_constants.TORRENT_DICT
     monkeypatch.setattr(clients.Transmission, "_client", MockTransmission)
     return MockTransmission
 
