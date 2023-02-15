@@ -68,6 +68,8 @@ def mock_project_folders(tmp_path, settings) -> dict[str, pathlib.Path]:
     plex = tmp_path / "plex"
     plex.mkdir()
     settings.PLEX_FOLDER = plex.resolve()
+    # Setup Movies folder
+    (plex / clients.FileSystem.MOVIES_FOLDER).mkdir()
     return {
         "incoming": incoming,
         "plex": plex,
