@@ -38,6 +38,25 @@ class LoginView(KnoxLoginView):
         return super().post(request, format=None)
 
 
+class AdditionViewMixin:
+    DEMO_LIST_INSTANCES = [
+        models.Addition(
+            state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[], delete=lambda: None
+        ),
+        models.Addition(
+            state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[], delete=lambda: None
+        ),
+    ]
+
+    def is_demo_user(self) -> bool:
+        return models.get_user_settings(self.request.user).demo
+
+    def get_queryset(self) -> models.AdditionSet[models.Addition]:
+        if self.is_demo_user():
+            return models.AdditionSet(self.DEMO_LIST_INSTANCES)
+        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
+
+
 class FileSerializer(serializers.Serializer):
     # read only fields
     name = serializers.CharField(read_only=True)
@@ -59,7 +78,7 @@ class AdditionSerializer(serializers.Serializer):
         return clients.Transmission.add_torrent(validated_data["magnet_link"])
 
 
-class AdditionListView(generics.ListCreateAPIView):
+class AdditionListView(AdditionViewMixin, generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     serializer_class = AdditionSerializer
 
@@ -76,28 +95,14 @@ class AdditionListView(generics.ListCreateAPIView):
         delete=lambda: None,
     )
 
-    DEMO_LIST_INSTANCES = [
-        models.Addition(
-            state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[], delete=lambda: None
-        ),
-        models.Addition(
-            state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[], delete=lambda: None
-        ),
-    ]
-
-    def get_queryset(self) -> models.AdditionSet[models.Addition]:
-        if models.get_user_settings(self.request.user).demo:
-            return models.AdditionSet(self.DEMO_LIST_INSTANCES)
-        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
-
     def perform_create(self, serializer):
-        if models.get_user_settings(self.request.user).demo:
+        if self.is_demo_user():
             serializer.instance = self.DEMO_CREATE_INSTANCE
             return
         super().perform_create(serializer)
 
 
-class AdditionDetailView(generics.RetrieveDestroyAPIView):
+class AdditionDetailView(AdditionViewMixin, generics.RetrieveDestroyAPIView):
     lookup_field = "id"
     serializer_class = AdditionSerializer
 
@@ -105,13 +110,8 @@ class AdditionDetailView(generics.RetrieveDestroyAPIView):
         state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[], delete=lambda: None
     )
 
-    def get_queryset(self) -> models.AdditionSet[models.Addition]:
-        if models.get_user_settings(self.request.user).demo:
-            return models.AdditionSet([self.DEMO_INSTANCE])
-        return clients.Transmission.get_torrents() + clients.FileSystem.get_files()
-
     def get_object(self):
-        if models.get_user_settings(self.request.user).demo:
+        if self.is_demo_user():
             # always return same instance for demo user
             instance = copy.deepcopy(self.DEMO_INSTANCE)
             instance.id = self.kwargs[self.lookup_field]
@@ -119,7 +119,7 @@ class AdditionDetailView(generics.RetrieveDestroyAPIView):
         return super().get_object()
 
     def perform_destroy(self, instance):
-        if models.get_user_settings(self.request.user).demo:
+        if self.is_demo_user():
             # do nothing for demo user
             return
         super().perform_destroy(instance)
