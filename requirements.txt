@@ -2,7 +2,7 @@ attrs==22.1.0
 Django==4.0.6
 django-filter==22.1
 django-rest-knox==4.2.0
-djangorestframework==3.13.1
+djangorestframework==3.14.0
 Markdown==3.4.1
 psycopg2==2.9.5
 transmission-rpc==3.4.0
