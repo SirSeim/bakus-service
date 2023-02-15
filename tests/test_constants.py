@@ -34,6 +34,9 @@ DOWNLOADS = [
     DIR_DOWNLOAD,
 ]
 
+SINGLE_TITLE = "Cat Dog (year)"
+DIR_TITLE = "Download Content (year)"
+
 USER_USERNAME = "test"
 USER_PASSWORD = "test1test"
 USER_LOGIN = {
