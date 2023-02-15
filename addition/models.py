@@ -17,6 +17,12 @@ class File:
 
 
 @define
+class RenameFile:
+    current_name: str
+    new_name: str
+
+
+@define
 class Addition:
     files: list[File]
     name: str

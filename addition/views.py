@@ -3,13 +3,14 @@ import copy
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from knox.views import LoginView as KnoxLoginView
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, status
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-from addition import clients, enums, models
+from addition import clients, enums, errors, models
 from addition.filters import AttributeFilter
 
 
@@ -123,3 +124,71 @@ class AdditionDetailView(AdditionViewMixin, generics.RetrieveDestroyAPIView):
             # do nothing for demo user
             return
         super().perform_destroy(instance)
+
+
+class RenameFileSerializer(serializers.Serializer):
+    current_name = serializers.CharField()
+    new_name = serializers.CharField()
+
+
+class AdditionRenameMovieSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    delete_rest = serializers.BooleanField(default=False)
+    files = RenameFileSerializer(many=True, allow_empty=False, min_length=1)
+
+    # because instance is attached in view, update is called instead of create
+    def update(self, instance: models.Addition, validated_data):
+        if instance.state != enums.State.COMPLETED:
+            raise errors.InvalidCompleteAddition()
+
+        renames = []
+        for file in validated_data["files"]:
+            renames.append(
+                models.RenameFile(
+                    current_name=file["current_name"],
+                    new_name=file["new_name"],
+                )
+            )
+        clients.FileSystem.rename_and_move_movie(instance.name, validated_data["title"], renames)
+        # with renames done, delete everything else if requested
+        if validated_data["delete_rest"]:
+            instance.delete()
+
+        # return input data as this serializer is for the rename payload
+        return validated_data
+
+
+class AdditionRenameMovieView(AdditionViewMixin, generics.CreateAPIView):
+    lookup_field = "id"
+    serializer_class = AdditionRenameMovieSerializer
+
+    DEMO_INSTANCE = models.Addition(
+        state=enums.State.COMPLETED, name="demo_addition_1", progress=1.0, files=[], delete=lambda: None
+    )
+
+    def get_object(self):
+        if self.is_demo_user():
+            # always return same instance for demo user
+            instance = copy.deepcopy(self.DEMO_INSTANCE)
+            instance.id = self.kwargs[self.lookup_field]
+            return instance
+        return super().get_object()
+
+    def perform_create(self, serializer):
+        if self.is_demo_user():
+            # do nothing for demo user
+            # set serializer instance to input data as .update would
+            serializer.instance = serializer.validated_data
+            return
+        super().perform_create(serializer)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Attach current instance to serializer, so it has everything it needs
+        serializer.instance = self.get_object()
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

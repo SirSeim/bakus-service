@@ -75,6 +75,9 @@ def delete_dir(directory: pathlib.Path) -> typing.Callable:
 
 
 class FileSystem:
+
+    MOVIES_FOLDER = "Movies"
+
     @classmethod
     def get_files(cls) -> models.AdditionSet[models.Addition]:
         res = []
@@ -119,3 +122,33 @@ class FileSystem:
             name=str(file),
             file_type=enums.FileType.get_extension(file),
         )
+
+    @classmethod
+    def rename_and_move_movie(cls, addition_name: str, title: str, files: list[models.RenameFile]):
+        addition = pathlib.Path(settings.INCOMING_FOLDER) / addition_name
+        destination_folder = pathlib.Path(settings.PLEX_FOLDER) / cls.MOVIES_FOLDER / title
+        if addition.is_file():
+            if len(files) != 1:
+                raise ValueError("Addition was determined to be a file, but not just 1 file rename was provided")
+            destination_folder.mkdir()
+            addition.rename(destination_folder / files[0].new_name)
+            return
+
+        for file in files:
+            if not (addition / file.current_name).is_file():
+                raise ValueError(f"File does not exist: {file.current_name}")
+
+        destination_folder.mkdir()
+        for file in files:
+            (addition / file.current_name).rename(destination_folder / file.new_name)
+
+        cls.clear_empty_dir(addition)
+
+    @classmethod
+    def clear_empty_dir(cls, folder: pathlib.Path):
+        for possible_dir in folder.iterdir():
+            if possible_dir.is_dir():
+                cls.clear_empty_dir(possible_dir)
+
+        if len(list(folder.iterdir())) == 0:
+            folder.rmdir()
