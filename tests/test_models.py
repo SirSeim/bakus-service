@@ -4,6 +4,7 @@ from attrs import define, field
 from transmission_rpc.lib_types import File as TorrentFile
 
 from addition import enums
+from common import hash_id
 
 
 @define
@@ -29,12 +30,16 @@ class Torrent:
             selected=True,
         )
 
+    @property
+    def external_id(self) -> str:
+        return str(hash_id(self.id))
+
     def get_json(self, include_files=True) -> dict:
         files = []
         if include_files:
             files = self.files()
         return {
-            "id": self.id,
+            "id": self.external_id,
             "state": enums.State.DOWNLOADING,
             "name": self.name,
             "progress": self.progress / 100,
@@ -66,6 +71,10 @@ class Download:
     single_file: bool = field(default=False)
     files: list[DownloadFile] = field(default=[])
 
+    @property
+    def external_id(self) -> str:
+        return str(hash_id(self.name))
+
     def get_json(self) -> dict:
         if self.single_file:
             files = [
@@ -74,7 +83,7 @@ class Download:
         else:
             files = [file.get_json() for file in self.files]
         return {
-            "id": self.name,
+            "id": self.external_id,
             "state": enums.State.COMPLETED,
             "name": self.name,
             "progress": 1.0,

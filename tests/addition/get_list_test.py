@@ -63,3 +63,14 @@ def test_exclude_partials(api_client, incoming_folder, mock_transmission_client,
     assert response.status_code == status.HTTP_200_OK
     assert response.data.get("count") == 0
     assert response.data.get("results") == []
+
+
+@pytest.mark.django_db
+def test_get_list_to_get_detail(api_client):
+    list_response = api_client.get(reverse("addition-list"))
+    assert list_response.status_code == status.HTTP_200_OK
+    assert list_response.data["count"] == len(test_constants.TORRENT_DICT)
+    first_addition = list_response.data["results"][0]
+    detail_response = api_client.get(reverse("addition-detail", args=[first_addition["id"]]))
+    assert detail_response.status_code == status.HTTP_200_OK
+    assert detail_response.data == first_addition
