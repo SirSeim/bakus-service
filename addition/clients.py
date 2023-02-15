@@ -1,5 +1,7 @@
 import os
 import pathlib
+import shutil
+import typing
 
 from django.conf import settings
 from transmission_rpc import Client, Torrent
@@ -38,12 +40,17 @@ class Transmission:
     def format_addition(cls, torrent: Torrent) -> models.Addition:
         files = [cls.format_file(f) for f in torrent.files()]
         files.sort(key=lambda f: f.name)
+
+        def _delete():
+            cls.client().remove_torrent(torrent.id, delete_data=True)
+
         return models.Addition(
             id=hash_id(str(torrent.id)),
             state=enums.State.DOWNLOADING,
             name=torrent.name,
             progress=torrent.progress / 100,
             files=files,
+            delete=_delete,
         )
 
     @staticmethod
@@ -57,6 +64,14 @@ class Transmission:
             name=name,
             file_type=enums.FileType.get_extension(pathlib.Path(file.name)),
         )
+
+
+def delete_file(file: pathlib.Path) -> typing.Callable:
+    return lambda: os.remove(file)
+
+
+def delete_dir(directory: pathlib.Path) -> typing.Callable:
+    return lambda: shutil.rmtree(directory)
 
 
 class FileSystem:
@@ -73,6 +88,7 @@ class FileSystem:
                     name=addition.name,
                     progress=1.0,
                     files=[cls.format_file(pathlib.Path(addition.name))],
+                    delete=delete_file(addition),
                 )
                 if a.is_valid():
                     res.append(a)
@@ -91,6 +107,7 @@ class FileSystem:
                 name=addition.name,
                 progress=1.0,
                 files=addition_files,
+                delete=delete_dir(addition),
             )
             if a.is_valid():
                 res.append(a)

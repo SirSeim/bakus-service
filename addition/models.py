@@ -22,6 +22,7 @@ class Addition:
     name: str
     progress: float
     state: enums.State
+    delete: typing.Callable
 
     id: uuid.UUID = field()
 

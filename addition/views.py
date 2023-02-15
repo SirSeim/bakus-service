@@ -73,11 +73,16 @@ class AdditionListView(generics.ListCreateAPIView):
         name="demo_addition",
         progress=0.0,
         files=[],
+        delete=lambda: None,
     )
 
     DEMO_LIST_INSTANCES = [
-        models.Addition(state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[]),
-        models.Addition(state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[]),
+        models.Addition(
+            state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[], delete=lambda: None
+        ),
+        models.Addition(
+            state=enums.State.COMPLETED, name="demo_addition_2", progress=1.0, files=[], delete=lambda: None
+        ),
     ]
 
     def get_queryset(self) -> models.AdditionSet[models.Addition]:
@@ -96,7 +101,9 @@ class AdditionDetailView(generics.RetrieveDestroyAPIView):
     lookup_field = "id"
     serializer_class = AdditionSerializer
 
-    DEMO_INSTANCE = models.Addition(state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[])
+    DEMO_INSTANCE = models.Addition(
+        state=enums.State.DOWNLOADING, name="demo_addition_1", progress=0.5, files=[], delete=lambda: None
+    )
 
     def get_queryset(self) -> models.AdditionSet[models.Addition]:
         if models.get_user_settings(self.request.user).demo:
