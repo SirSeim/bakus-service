@@ -19,18 +19,19 @@ SINGLE_DOWNLOAD = Download(
     name="cat-dog.mkv",
     single_file=True,
 )
+DIR_DOWNLOAD = Download(
+    name="downloaded-content",
+    files=[
+        DownloadFile(name="poster.jpg", file_type=enums.FileType.IMAGE),
+        DownloadFile(name="subtitles.srt", file_type=enums.FileType.SUBTITLE),
+        DownloadFile(name="videos/completed.mov", file_type=enums.FileType.VIDEO),
+    ],
+)
 
 
 DOWNLOADS = [
     SINGLE_DOWNLOAD,
-    Download(
-        name="downloaded-content",
-        files=[
-            DownloadFile(name="poster.jpg", file_type=enums.FileType.IMAGE),
-            DownloadFile(name="subtitles.srt", file_type=enums.FileType.SUBTITLE),
-            DownloadFile(name="videos/completed.mov", file_type=enums.FileType.VIDEO),
-        ],
-    ),
+    DIR_DOWNLOAD,
 ]
 
 USER_USERNAME = "test"

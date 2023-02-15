@@ -31,7 +31,7 @@ class Torrent:
         )
 
     @property
-    def id_formatted(self) -> str:
+    def external_id(self) -> str:
         return str(hash_id(self.id))
 
     def get_json(self, include_files=True) -> dict:
@@ -39,7 +39,7 @@ class Torrent:
         if include_files:
             files = self.files()
         return {
-            "id": self.id_formatted,
+            "id": self.external_id,
             "state": enums.State.DOWNLOADING,
             "name": self.name,
             "progress": self.progress / 100,
@@ -72,7 +72,7 @@ class Download:
     files: list[DownloadFile] = field(default=[])
 
     @property
-    def id(self) -> str:
+    def external_id(self) -> str:
         return str(hash_id(self.name))
 
     def get_json(self) -> dict:
@@ -83,7 +83,7 @@ class Download:
         else:
             files = [file.get_json() for file in self.files]
         return {
-            "id": self.id,
+            "id": self.external_id,
             "state": enums.State.COMPLETED,
             "name": self.name,
             "progress": 1.0,

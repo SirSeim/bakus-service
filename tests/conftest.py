@@ -1,3 +1,4 @@
+import copy
 import pathlib
 
 import pytest
@@ -46,11 +47,15 @@ class MockTransmission:
     def get_torrents(cls) -> list[test_models.Torrent]:
         return [torrent for torrent in cls.TORRENT_DICT.values()]
 
+    @classmethod
+    def remove_torrent(cls, torrent_id: int, **_):
+        del cls.TORRENT_DICT[str(torrent_id)]
+
 
 @pytest.fixture(autouse=True)
 def mock_transmission_client(monkeypatch):
     # Reset client contents for every test
-    MockTransmission.TORRENT_DICT = test_constants.TORRENT_DICT
+    MockTransmission.TORRENT_DICT = copy.deepcopy(test_constants.TORRENT_DICT)
     monkeypatch.setattr(clients.Transmission, "_client", MockTransmission)
     return MockTransmission
 
