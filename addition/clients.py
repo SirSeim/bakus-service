@@ -77,6 +77,7 @@ def delete_dir(directory: pathlib.Path) -> typing.Callable:
 class FileSystem:
 
     MOVIES_FOLDER = "Movies"
+    TV_SHOWS_FOLDER = "TV"
 
     @classmethod
     def get_files(cls) -> models.AdditionSet[models.Addition]:
@@ -139,6 +140,29 @@ class FileSystem:
                 raise ValueError(f"File does not exist: {file.current_name}")
 
         destination_folder.mkdir()
+        for file in files:
+            (addition / file.current_name).rename(destination_folder / file.new_name)
+
+        cls.clear_empty_dir(addition)
+
+    @classmethod
+    def rename_and_move_tv_season(cls, addition_name: str, title: str, season: int, files: list[models.RenameFile]):
+        addition = pathlib.Path(settings.INCOMING_FOLDER) / addition_name
+        destination_folder = (
+            pathlib.Path(settings.PLEX_FOLDER) / cls.TV_SHOWS_FOLDER / title / f"Season {'{:02d}'.format(season)}"
+        )
+        if addition.is_file():
+            if len(files) != 1:
+                raise ValueError("Addition was determined to be a file, but not just 1 file rename was provided")
+            destination_folder.mkdir(parents=True, exist_ok=True)
+            addition.rename(destination_folder / files[0].new_name)
+            return
+
+        for file in files:
+            if not (addition / file.current_name).is_file():
+                raise ValueError(f"File does not exist: {file.current_name}")
+
+        destination_folder.mkdir(parents=True, exist_ok=True)
         for file in files:
             (addition / file.current_name).rename(destination_folder / file.new_name)
 
