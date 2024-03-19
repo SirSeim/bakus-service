@@ -104,7 +104,7 @@ def test_rename_and_move_tv_season_multiple_files(incoming_folder, plex_folder):
 
     assert not (incoming_folder / old_name).exists(), "old folder should no longer exist"
     for file in files:
-        new_file = plex_folder / FileSystem.TV_SHOWS_FOLDER / new_title / "season 01" / file.new_name
+        new_file = plex_folder / FileSystem.TV_SHOWS_FOLDER / new_title / "Season 01" / file.new_name
         assert new_file.exists()
         assert new_file.read_text() == "foo bar"
 
