@@ -131,25 +131,34 @@ class RenameFileSerializer(serializers.Serializer):
     new_name = serializers.CharField()
 
 
-class AdditionRenameMovieSerializer(serializers.Serializer):
+class BaseAdditionRenameSerializer(serializers.Serializer):
     title = serializers.CharField()
     delete_rest = serializers.BooleanField(default=False)
     files = RenameFileSerializer(many=True, allow_empty=False, min_length=1)
 
+    @staticmethod
+    def get_file_renames(validated_data) -> list[models.RenameFile]:
+        return [
+            models.RenameFile(
+                current_name=file["current_name"],
+                new_name=file["new_name"],
+            )
+            for file in validated_data["files"]
+        ]
+
+    def update(self, instance: models.Addition, validated_data):
+        raise NotImplementedError()
+
+
+class AdditionRenameMovieSerializer(BaseAdditionRenameSerializer):
     # because instance is attached in view, update is called instead of create
     def update(self, instance: models.Addition, validated_data):
         if instance.state != enums.State.COMPLETED:
             raise errors.InvalidCompleteAddition()
 
-        renames = []
-        for file in validated_data["files"]:
-            renames.append(
-                models.RenameFile(
-                    current_name=file["current_name"],
-                    new_name=file["new_name"],
-                )
-            )
-        clients.FileSystem.rename_and_move_movie(instance.name, validated_data["title"], renames)
+        clients.FileSystem.rename_and_move_movie(
+            instance.name, validated_data["title"], self.get_file_renames(validated_data)
+        )
         # with renames done, delete everything else if requested
         if validated_data["delete_rest"]:
             instance.delete()
@@ -158,9 +167,28 @@ class AdditionRenameMovieSerializer(serializers.Serializer):
         return validated_data
 
 
-class AdditionRenameMovieView(AdditionViewMixin, generics.CreateAPIView):
+class AdditionRenameTvSeasonSerializer(BaseAdditionRenameSerializer):
+    # plex tv show season folders have 2 digits
+    season = serializers.IntegerField(min_value=0, max_value=99)
+
+    # because instance is attached in view, update is called instead of create
+    def update(self, instance: models.Addition, validated_data):
+        if instance.state != enums.State.COMPLETED:
+            raise errors.InvalidCompleteAddition()
+
+        clients.FileSystem.rename_and_move_tv_season(
+            instance.name, validated_data["title"], validated_data["season"], self.get_file_renames(validated_data)
+        )
+        # with renames done, delete everything else if requested
+        if validated_data["delete_rest"]:
+            instance.delete()
+
+        # return input data as this serializer is for the rename payload
+        return validated_data
+
+
+class BaseAdditionRenameView(AdditionViewMixin, generics.CreateAPIView):
     lookup_field = "id"
-    serializer_class = AdditionRenameMovieSerializer
 
     DEMO_INSTANCE = models.Addition(
         state=enums.State.COMPLETED, name="demo_addition_1", progress=1.0, files=[], delete=lambda: None
@@ -192,3 +220,11 @@ class AdditionRenameMovieView(AdditionViewMixin, generics.CreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+
+class AdditionRenameMovieView(BaseAdditionRenameView):
+    serializer_class = AdditionRenameMovieSerializer
+
+
+class AdditionRenameTvSeasonView(BaseAdditionRenameView):
+    serializer_class = AdditionRenameTvSeasonSerializer

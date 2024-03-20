@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
 from knox import views as knox_views
@@ -26,6 +27,11 @@ urlpatterns = [
     path("api/v1/addition/<uuid:id>/", views.AdditionDetailView.as_view(), name="addition-detail"),
     path(
         "api/v1/addition/<uuid:id>/rename-movie", views.AdditionRenameMovieView.as_view(), name="addition-rename-movie"
+    ),
+    path(
+        "api/v1/addition/<uuid:id>/rename-tv-season",
+        views.AdditionRenameTvSeasonView.as_view(),
+        name="addition-rename-tv-season",
     ),
     path("api/v1/auth/account/", views.AccountView.as_view(), name="account-detail"),
     path("api/v1/auth/login/", views.LoginView.as_view(), name="knox_login"),

@@ -14,6 +14,7 @@ def test_single_file(api_client, incoming_folder, plex_folder):
     test_constants.SINGLE_DOWNLOAD.create_files(incoming_folder)
     payload = {
         "title": test_constants.SINGLE_TITLE,
+        "season": 1,
         "files": [
             {
                 "current_name": test_constants.SINGLE_DOWNLOAD.name,
@@ -22,7 +23,7 @@ def test_single_file(api_client, incoming_folder, plex_folder):
         ],
     }
     response = api_client.post(
-        reverse("addition-rename-movie", args=[test_constants.SINGLE_DOWNLOAD.external_id]),
+        reverse("addition-rename-tv-season", args=[test_constants.SINGLE_DOWNLOAD.external_id]),
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -33,7 +34,11 @@ def test_single_file(api_client, incoming_folder, plex_folder):
     old_file = incoming_folder / test_constants.SINGLE_DOWNLOAD.name
     assert not old_file.exists(), "old file should no longer be there"
     new_file = (
-        plex_folder / FileSystem.MOVIES_FOLDER / test_constants.SINGLE_TITLE / f"{test_constants.SINGLE_TITLE}.mkv"
+        plex_folder
+        / FileSystem.TV_SHOWS_FOLDER
+        / test_constants.SINGLE_TITLE
+        / "Season 01"
+        / f"{test_constants.SINGLE_TITLE}.mkv"
     )
     assert new_file.exists() and new_file.is_file(), "file should now be here"
 
@@ -53,6 +58,7 @@ def test_multiple_files_move_everything(api_client, incoming_folder, plex_folder
     test_constants.DIR_DOWNLOAD.create_files(incoming_folder)
     payload = {
         "title": test_constants.DIR_TITLE,
+        "season": 1,
         "files": [
             {
                 "current_name": file.name,
@@ -62,7 +68,7 @@ def test_multiple_files_move_everything(api_client, incoming_folder, plex_folder
         ],
     }
     response = api_client.post(
-        reverse("addition-rename-movie", args=[test_constants.DIR_DOWNLOAD.external_id]),
+        reverse("addition-rename-tv-season", args=[test_constants.DIR_DOWNLOAD.external_id]),
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -75,8 +81,9 @@ def test_multiple_files_move_everything(api_client, incoming_folder, plex_folder
     for file in test_constants.DIR_DOWNLOAD.files:
         new_file = (
             plex_folder
-            / FileSystem.MOVIES_FOLDER
+            / FileSystem.TV_SHOWS_FOLDER
             / test_constants.DIR_TITLE
+            / "Season 01"
             / f"{test_constants.DIR_TITLE}.{file_type_to_extension(file.file_type)}"
         )
         assert new_file.exists() and new_file.is_file(), "file should now be here"
@@ -88,6 +95,7 @@ def test_multiple_files_leave_some_behind(api_client, incoming_folder, plex_fold
     file_to_move = [file for file in test_constants.DIR_DOWNLOAD.files if file.file_type == enums.FileType.VIDEO][0]
     payload = {
         "title": test_constants.DIR_TITLE,
+        "season": 1,
         "files": [
             {
                 "current_name": file_to_move.name,
@@ -96,7 +104,7 @@ def test_multiple_files_leave_some_behind(api_client, incoming_folder, plex_fold
         ],
     }
     response = api_client.post(
-        reverse("addition-rename-movie", args=[test_constants.DIR_DOWNLOAD.external_id]),
+        reverse("addition-rename-tv-season", args=[test_constants.DIR_DOWNLOAD.external_id]),
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -109,8 +117,9 @@ def test_multiple_files_leave_some_behind(api_client, incoming_folder, plex_fold
     for file in test_constants.DIR_DOWNLOAD.files:
         new_file = (
             plex_folder
-            / FileSystem.MOVIES_FOLDER
+            / FileSystem.TV_SHOWS_FOLDER
             / test_constants.DIR_TITLE
+            / "Season 01"
             / f"{test_constants.DIR_TITLE}.{file_type_to_extension(file.file_type)}"
         )
         old_file = old_dir / file.name
@@ -129,6 +138,7 @@ def test_multiple_files_clear_old(api_client, incoming_folder, plex_folder):
     file_to_move = [file for file in test_constants.DIR_DOWNLOAD.files if file.file_type == enums.FileType.VIDEO][0]
     payload = {
         "title": test_constants.DIR_TITLE,
+        "season": 1,
         "delete_rest": True,
         "files": [
             {
@@ -138,7 +148,7 @@ def test_multiple_files_clear_old(api_client, incoming_folder, plex_folder):
         ],
     }
     response = api_client.post(
-        reverse("addition-rename-movie", args=[test_constants.DIR_DOWNLOAD.external_id]),
+        reverse("addition-rename-tv-season", args=[test_constants.DIR_DOWNLOAD.external_id]),
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -150,8 +160,9 @@ def test_multiple_files_clear_old(api_client, incoming_folder, plex_folder):
     for file in test_constants.DIR_DOWNLOAD.files:
         new_file = (
             plex_folder
-            / FileSystem.MOVIES_FOLDER
+            / FileSystem.TV_SHOWS_FOLDER
             / test_constants.DIR_TITLE
+            / "Season 01"
             / f"{test_constants.DIR_TITLE}.{file_type_to_extension(file.file_type)}"
         )
         old_file = old_dir / file.name
@@ -165,6 +176,7 @@ def test_multiple_files_clear_old(api_client, incoming_folder, plex_folder):
 def test_rename_addition_in_progress_fails(api_client):
     payload = {
         "title": test_constants.DIR_TITLE,
+        "season": 1,
         "delete_rest": True,
         "files": [
             {
@@ -174,7 +186,7 @@ def test_rename_addition_in_progress_fails(api_client):
         ],
     }
     response = api_client.post(
-        reverse("addition-rename-movie", args=[test_constants.TORRENT_DICT["1"].external_id]),
+        reverse("addition-rename-tv-season", args=[test_constants.TORRENT_DICT["1"].external_id]),
         data=json.dumps(payload),
         content_type="application/json",
     )
