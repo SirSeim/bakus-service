@@ -1,3 +1,5 @@
+import pytest
+
 from addition import models
 from addition.clients import FileSystem
 
@@ -65,6 +67,31 @@ def test_rename_and_move_movie_left_over_files(incoming_folder, plex_folder):
     assert new_file.read_text() == "foo"
 
 
+def test_rename_and_move_movie_incorrect_file_count(incoming_folder):
+    old_file = "test.mkv"
+    (incoming_folder / old_file).write_text("foo bar")
+    files_to_move = [
+        models.RenameFile(current_name="movie.mp4", new_name="movie.mp4"),
+        models.RenameFile(current_name="other.srt", new_name="other.srt"),
+    ]
+
+    with pytest.raises(
+        ValueError, match="Addition was determined to be a file, but not just 1 file rename was provided"
+    ):
+        FileSystem.rename_and_move_movie(old_file, "Final (year)", files_to_move)
+
+
+def test_rename_and_move_movie_file_does_not_exist(incoming_folder):
+    old_name = "test_dir"
+    (incoming_folder / old_name).mkdir()
+    files_to_move = [
+        models.RenameFile(current_name="movie.mp4", new_name="movie.mp4"),
+    ]
+
+    with pytest.raises(ValueError, match="File does not exist: movie.mp4"):
+        FileSystem.rename_and_move_movie(old_name, "Final (year)", files_to_move)
+
+
 def test_rename_and_move_tv_season_single_file(incoming_folder, plex_folder):
     old_name = "test.mkv"
     new_title = "Final (year)"
@@ -126,6 +153,31 @@ def test_rename_and_move_tv_season_left_over_files(incoming_folder, plex_folder)
     new_file = plex_folder / FileSystem.TV_SHOWS_FOLDER / new_title / "Season 01" / file_to_move.new_name
     assert new_file.exists()
     assert new_file.read_text() == "foo"
+
+
+def test_rename_and_move_tv_season_incorrect_file_count(incoming_folder):
+    old_file = "test.mkv"
+    (incoming_folder / old_file).write_text("foo bar")
+    files_to_move = [
+        models.RenameFile(current_name="movie.mp4", new_name="movie.mp4"),
+        models.RenameFile(current_name="other.srt", new_name="other.srt"),
+    ]
+
+    with pytest.raises(
+        ValueError, match="Addition was determined to be a file, but not just 1 file rename was provided"
+    ):
+        FileSystem.rename_and_move_tv_season(old_file, "Final (year)", 1, files_to_move)
+
+
+def test_rename_and_move_tv_season_file_does_not_exist(incoming_folder):
+    old_name = "test_dir"
+    (incoming_folder / old_name).mkdir()
+    files_to_move = [
+        models.RenameFile(current_name="movie.mp4", new_name="movie.mp4"),
+    ]
+
+    with pytest.raises(ValueError, match="File does not exist: movie.mp4"):
+        FileSystem.rename_and_move_tv_season(old_name, "Final (year)", 1, files_to_move)
 
 
 def test_rename_and_move_tv_season_season_zero(incoming_folder, plex_folder):
