@@ -161,4 +161,22 @@ def test_multiple_files_clear_old(api_client, incoming_folder, plex_folder):
         assert not old_file.exists(), "file should no longer be in old location"
 
 
-# TODO: Add test for assuring in-progress Additions cannot be renamed
+@pytest.mark.django_db
+def test_rename_addition_in_progress_fails(api_client):
+    payload = {
+        "title": test_constants.DIR_TITLE,
+        "delete_rest": True,
+        "files": [
+            {
+                "current_name": "old_file.mkv",
+                "new_name": "file.mov",
+            }
+        ],
+    }
+    response = api_client.post(
+        reverse("addition-rename-movie", args=[test_constants.TORRENT_DICT["1"].external_id]),
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == {"detail": "Addition asked for is not marked Completed"}
